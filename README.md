@@ -21,7 +21,11 @@ Insert the module
 To see if everything is ok, run:
 > cat /dev/ledchain0
 
-##Use
+Copy the omegaled.init.d to your init.d directory and enable it:
+> cp omegaled.init.d /etc/init.d/omegaled
+> /etc/init.d/omegaled enable
+
+## Use
 
 Start the remote.py script
 > python remote.py
