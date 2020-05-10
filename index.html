@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Led Strip Sim</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+    <body>
+      <div class="w3-container w3-green">
+        <h2>Led Strip Effects</h2>
+      </div>
+
+      <div class="w3-bar w3-light-grey">
+       <a href="#" class="w3-bar-item w3-button" onclick="addEffect()">Add Effect</a>
+       <a href="#" class="w3-bar-item w3-button" onclick="stop()">Stop</a>
+       <a href="#" class="w3-bar-item w3-button" onclick="start()">Start</a>
+       <a href="#" class="w3-bar-item w3-button" onclick="update()">Update</a>
+       <!-- <input type="text" class="w3-bar-item w3-input" placeholder="Search..">
+       <a href="#" class="w3-bar-item w3-button w3-green">Go</a> -->
+      </div>
+      <br>
+      <div class="w3-container">
+        <ul class="w3-ul w3-card-4" id="effect_list">
+        </ul>
+      </div>
+
+      <br>
+
+      <footer>
+        <div class='connection' id="connection_status">
+          Connection Status
+        </div>
+      </footer>
+
+      <script>
+      const effects = {
+        'rainbow': {
+          name: "Rainbow",
+          img: "https://png.pngtree.com/png-vector/20190801/ourlarge/pngtree-rainbow-icon-png-image_1645018.jpg",
+          options: {
+              'speed': {
+                name: "Speed",
+                type: "number",
+                min: 0
+              },
+              'hue_start': {
+                name: "Hue_start",
+                type: "number",
+                max: 360,
+                min: 0
+              },
+              'hue_end': {
+                name: "Hue_end",
+                type: "number",
+                max: 360,
+                min: 0
+              },
+          }
+        },
+        'runner': {
+          name: "Runner",
+          img: "https://www.pngitem.com/pimgs/m/43-438054_running-man-png-free-download-runner-transparent-background.png",
+          options: {
+              'hue': {
+                name: "Hue",
+                type: "number",
+                max: 360,
+                min: 0
+              },
+              'saturation': {
+                name: "Saturation",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
+              'brightness': {
+                name: "Brightness",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
+              'size': {
+                name: "Size",
+                type: "number",
+                min: 0
+              },
+              'speed': {
+                name: "Speed",
+                type: "number",
+                step: 0.01
+              },
+              'start': {
+                name: "Start",
+                type: "number",
+                max: 100,
+                min: 0
+              },
+              'end': {
+                name: "End",
+                type: "number",
+                max: 100,
+                min: 0
+              },
+          }
+        },
+      }
+
+      class Effect {
+        constructor() {
+          this.htmlElement = document.createElement("LI");
+          this.htmlElement.classList.add("effect");
+          this.htmlElement.classList.add("w3-bar");
+
+          this.imgElement = document.createElement("IMG");
+          this.imgElement.classList.add("w3-bar-item", "w3-circle", "w3-hide-small")
+          this.imgElement.src = ''
+          this.imgElement.style = 'width:85px'
+          this.htmlElement.appendChild(this.imgElement);
+
+          this.closeElement = document.createElement("SPAN");
+          this.closeElement.classList.add("w3-bar-item", "w3-button", "w3-white", "w3-xlarge", "w3-right")
+          this.closeElement.innerHTML="x"
+          this.htmlElement.appendChild(this.closeElement);
+
+          this.selectElement = document.createElement("SELECT");
+          this.selectElement.classList.add("w3-select");
+          this.effect = {};
+          this.options = {};
+
+          this.divElement = document.createElement("DIV");
+          this.divElement.classList.add("w3-bar-item","w3-large");
+
+          this.spanSelectElement = document.createElement("SPAN");
+          this.spanSelectElement.classList.add("w3-large");
+
+          this.htmlElement.appendChild(this.divElement);
+
+          Object.keys(effects).forEach((key) => {
+              var optionElement = document.createElement("OPTION");
+              optionElement.innerHTML = effects[key]['name']
+              optionElement.value = key
+
+              this.selectElement.appendChild(optionElement);
+          });
+
+          this.selectElement.addEventListener("change", (event) => {
+            console.log("optionElement click")
+            this.optionsUpdate()
+          });
+
+          this.closeElement.addEventListener("click", (event) => {
+            console.log("closeElement click")
+            // this.optionsUpdate()
+          });
+
+          this.divElement.appendChild(this.selectElement);
+
+          this.optionsElement = document.createElement("DIV");
+          this.htmlElement.appendChild(this.optionsElement);
+
+          this.htmlElement.addEventListener("click", function() {
+            // this.toggle();
+            // self.state = !self.state;
+            // self.update();
+            console.log("Effect click")
+          })
+
+          this.optionsUpdate()
+        }
+
+        optionsUpdate(){
+          while (this.optionsElement.hasChildNodes()) {
+            this.optionsElement.removeChild(this.optionsElement.firstChild);
+          }
+
+          var selectedEffect = effects[this.selectElement.value]
+          var Options = effects[this.selectElement.value]['options']
+
+          this.imgElement.src = effects[this.selectElement.value].img
+
+          Object.keys(Options).forEach((key) => {
+              Option = Options[key]
+              var optionLabelElement = document.createElement('LABEL');
+              optionLabelElement.innerHTML = Option['name']
+
+              var optionInputElement = document.createElement('INPUT');
+              optionInputElement.name = Option['name']
+              optionInputElement.classList.add('w3-input')
+              optionInputElement.value = ''
+              optionInputElement.type = Option['type']
+
+              if(Option['max']){
+                  optionInputElement.max = Option['max']
+              }
+
+              if(Option['min'] != undefined ){
+                  optionInputElement.min = Option['min']
+              }
+
+              if(Option['step']){
+                  optionInputElement.step = Option['step']
+              }
+
+              this.optionsElement.appendChild(optionLabelElement);
+              this.optionsElement.appendChild(optionInputElement);
+
+              this.options[key] = optionInputElement
+          });
+        }
+
+        getEffect(){
+          var result = {name: this.selectElement.value};
+
+          var effectOptions = {}
+
+          var Options = effects[this.selectElement.value]['options'];
+
+          Object.keys(this.options).forEach((key) => {
+            if(this.options[key].value){
+              parseInt
+              if(this.options[key].type == 'number'){
+                effectOptions[key] = parseFloat(this.options[key].value)
+              }else{
+                effectOptions[key] = this.options[key].value
+              }
+            }
+          })
+
+          result['options'] = effectOptions;
+
+          return result
+        }
+      }
+
+      class Effect_list {
+        constructor(htmlElement) {
+          this.htmlElement = htmlElement;
+
+          this.effects = []
+        }
+
+        addEffect(effect){
+          this.effects.push(effect)
+          this.htmlElement.appendChild(effect.htmlElement);
+        }
+
+        removeEffect(effect){
+          this.effects.push(effect)
+          this.htmlElement.appendChild(effect.htmlElement);
+        }
+
+        getEffectsList(){
+          var result = []
+
+          this.effects.forEach((item, i) => {
+            result.push(item.getEffect())
+          });
+
+          return result
+        }
+      }
+      </script>
+      <script>
+      function connectWebsocket(serverUrl) {
+        var ws = new WebSocket(serverUrl);
+
+        ws.onopen = function() {
+          console.log('Connected to ', serverUrl);
+          connectionStatusElement.innerHTML = 'Connected to ' + serverUrl
+        };
+
+        ws.onmessage = function(e) {
+          console.log('Message:', e.data);
+          connectionStatusElement.innerHTML = 'Message ' + e.data
+        };
+
+        ws.onclose = function(e) {
+          if (e.wasClean) {
+            connectionStatusElement.innerHTML = 'Connection Close'
+            console.info(`[close] Connection closed cleanly, code=${e.code} reason=${e.reason}`);
+          } else {
+            console.error('[close] Connection died');
+            connectionStatusElement.innerHTML = 'Connection died'
+
+            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e);
+            setTimeout(function() {
+              connectionStatusElement.innerHTML = 'Connection retry'
+              connectWebsocket(serverUrl);
+            }, 1000);
+          }
+        };
+
+        ws.onerror = function(err) {
+          console.error('Socket encountered error: ', err.message, 'Closing socket');
+          connectionStatusElement.innerHTML = 'Error: ' + err.message
+          ws.close();
+        };
+
+        ledstripSocket = ws;
+      }
+      </script>
+      <script>
+        var interval;
+        var effect_list_html = document.getElementById("effect_list")
+        var connectionStatusElement = document.getElementById("connection_status")
+
+        // var serverUrl = "ws://omega-90f5:8888/ledstrip";
+        // var serverPort = '8888';
+        var serverUrl = `ws://${document.location.hostname}:8888/ledstrip`;
+
+        console.log(serverUrl);
+
+        var ledstripSocket;
+
+        connectWebsocket(serverUrl)
+
+        var effect_list = new Effect_list(effect_list_html);
+
+        function addEffect(){
+          effect_list.addEffect(new Effect())
+        }
+
+        function stop(){
+          var msg = {
+            type: "action",
+            action: "stop",
+            date: Date.now()
+          };
+          console.log(JSON.stringify(msg))
+
+          ledstripSocket.send(JSON.stringify(msg));
+        }
+
+        function start(){
+          var msg = {
+            type: "action",
+            action: "start",
+            date: Date.now()
+          };
+          console.log(JSON.stringify(msg))
+
+          ledstripSocket.send(JSON.stringify(msg));
+        }
+
+        function update(){
+          var msg = {
+            action: "change",
+            effects: effect_list.getEffectsList(),
+            date: Date.now()
+          };
+
+          console.log(JSON.stringify(msg))
+
+          ledstripSocket.send(JSON.stringify(msg));
+        }
+
+      </script>
+    </body>
+</html>
