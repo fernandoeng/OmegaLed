@@ -12,7 +12,7 @@ from models.led_strip import LedStrip
 
 strip = LedStrip(14)
 
-def animation():
+def start():
     """animation"""
     strip.stop_animation()
     print("start_animation")
@@ -60,7 +60,7 @@ class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W
         if data['action'] == 'stop':
             stop()
         if data['action'] == 'start':
-            animation()
+            start()
         if data['action'] == 'change':
             if 'effects' in data:
                 change(data['effects'])
@@ -82,4 +82,12 @@ def make_app():
 if __name__ == "__main__":
     app = make_app()
     app.listen(8888)
-    tornado.ioloop.IOLoop.current().start()
+
+    strip.add_effect_by_name("rainbow", options={"hue_end": 60})
+
+    start()
+
+    try:
+        tornado.ioloop.IOLoop.current().start()
+    finally:
+        stop()

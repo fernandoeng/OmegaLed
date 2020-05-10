@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Led Strip Sim</title>
+  <title>Led Strip</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -307,8 +307,6 @@
         var effect_list_html = document.getElementById("effect_list")
         var connectionStatusElement = document.getElementById("connection_status")
 
-        // var serverUrl = "ws://omega-90f5:8888/ledstrip";
-        // var serverPort = '8888';
         var serverUrl = `ws://${document.location.hostname}:8888/ledstrip`;
 
         console.log(serverUrl);
