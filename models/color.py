@@ -11,6 +11,11 @@ class Color:
         self.saturation = saturation
         self.brightness = brightness
 
+        try:
+            self.hue = int(self.hue) % 360
+        except Exception as error:
+            print(error)
+
     def get_rgb_color(self):
         """DocString"""
         return colorsys.hsv_to_rgb(self.hue/360.0, self.saturation, self.brightness)

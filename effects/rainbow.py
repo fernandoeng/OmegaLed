@@ -8,6 +8,18 @@ class RainbowEffect(GenericEffect):
     """DocString"""
     def __init__(self, **kwargs):
         """DocString"""
+        self.name = "rainbow"
+
+        self.options = {
+            "speed": "speed",
+            "start": "start",
+            "end": "start",
+            "hue_start": "hue_start",
+            "hue_end": "hue_end",
+            "forward": "forward",
+            "blend": "blend",
+        }
+
         self.state = []
 
         self.hue_count = 0
@@ -20,6 +32,7 @@ class RainbowEffect(GenericEffect):
         self.start = kwargs.get('start', 0)
         self.end = kwargs.get('end', -1)
         self.forward = kwargs.get('forward', True)
+        self.blend = kwargs.get('blend', 'default')
 
 
     def reset(self):
@@ -47,5 +60,13 @@ class RainbowEffect(GenericEffect):
         index = 0
         while index < self.count:
             self.state[index] = self.state[index] + int(self.speed)
-            self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index], None, None))
+            if self.blend == 'sum':
+                actual_color = self.led_strip.get_led(index).get_color()
+                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index] + int(actual_color.hue), None, None))
+            elif self.blend == 'multiply':
+                actual_color = self.led_strip.get_led(index).get_color()
+                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index] * int(actual_color.hue), None, None))
+            else:
+                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index], None, None))
+
             index = index + 1

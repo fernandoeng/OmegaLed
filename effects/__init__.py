@@ -1,6 +1,9 @@
+""" Effects Modules"""
+
 __all__ = [
     'brighbreathing',
     'generic',
     'rainbow',
-    'runner'
+    'runner',
+    'static'
     ]

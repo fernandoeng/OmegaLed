@@ -2,6 +2,8 @@
 
 from os import path
 
+import uuid
+import time
 import json
 import tornado.ioloop
 import tornado.websocket
@@ -30,6 +32,12 @@ def change(effects):
     for effect in effects:
         strip.add_effect_by_name(effect['name'], options=effect['options'])
 
+    for key in clients:
+        print(clients[key].uuid)
+        clients[key].send_led_strip_info()
+
+clients = {}
+
 
 class MainHandler(tornado.web.RequestHandler): # pylint: disable=W0223
     """MainHandler"""
@@ -43,13 +51,56 @@ class MainHandler(tornado.web.RequestHandler): # pylint: disable=W0223
 class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W0223
     """LedStripWebsocket"""
 
+    def simple_init(self):
+        """ Initialize Socket """
+        self.last = time.time()
+        self.stop = False
+        self.uuid = uuid.uuid1()
+
     def check_origin(self, origin):
         """check_origin"""
         return True
 
+    def send_led_strip_info(self):
+        """check_origin"""
+
+        result = {}
+
+        result['ledstrip'] = strip.to_json()
+
+        effects = strip.get_effects()
+
+        result['effects'] = []
+        for effect in effects:
+            result['effects'].append(effect.to_json())
+
+        result_json = "{}"
+
+        try:
+            result_json = json.dumps(result)
+        except Exception as error:
+            print(error)
+
+        self.write_message(u"{}".format(result_json))
+
+
     def open(self): # pylint: disable=W0221
         """open"""
         print("Websocket Opened")
+        self.simple_init()
+
+        clients[self.uuid] = self
+
+        self.send_led_strip_info()
+
+        self.loop = tornado.ioloop.PeriodicCallback(self.keep_alive, 1000)
+        self.loop.start()
+
+    def keep_alive(self):
+        """Keep alive"""
+        if time.time() - self.last > 10:
+            self.write_message("{'message','keep Alive'}")
+            self.last = time.time()
 
     def on_message(self, message):
         """on_message"""
@@ -64,10 +115,16 @@ class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W
         if data['action'] == 'change':
             if 'effects' in data:
                 change(data['effects'])
+                self.write_message(u"Changes done!")
 
     def on_close(self):
         """on_close"""
         print("Websocket Closed")
+        try:
+            self.loop.stop()
+            del clients[self.uuid]
+        except KeyError:
+            print("Could not remove {}".format(self.uuid))
 
 
 def make_app():

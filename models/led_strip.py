@@ -126,6 +126,10 @@ class LedStrip:
             effect.atatch_led_strip(self)
             self.effects.append(effect)
 
+    def get_effects(self):
+        """Return the dict with all effects"""
+        return self.effects
+
     def get_led(self, index):
         """DocString"""
         if 0 <= index < self.size():
@@ -162,3 +166,16 @@ class LedStrip:
         """DocString"""
         if 0 <= position < self.size():
             self.leds[position].turn(state)
+
+
+    def to_json(self):
+        """To Json"""
+        result = {
+            "size": self.size(),
+            "running": self.running,
+            "animation_speed": self.animation_speed,
+            "frames_per_second": self.frames_per_second,
+            "background_color": self.background_color,
+        }
+
+        return result

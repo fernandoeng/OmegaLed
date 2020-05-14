@@ -1,44 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Led Strip</title>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  <!-- <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
+  <script src="https://unpkg.com/vue-sortable@latest"></script> -->
 </head>
-    <body>
-      <div class="w3-container w3-green">
-        <h2>Led Strip Effects</h2>
-      </div>
 
-      <div class="w3-bar w3-light-grey">
-       <a href="#" class="w3-bar-item w3-button" onclick="addEffect()">Add Effect</a>
-       <a href="#" class="w3-bar-item w3-button" onclick="stop()">Stop</a>
-       <a href="#" class="w3-bar-item w3-button" onclick="start()">Start</a>
-       <a href="#" class="w3-bar-item w3-button" onclick="update()">Update</a>
-       <!-- <input type="text" class="w3-bar-item w3-input" placeholder="Search..">
-       <a href="#" class="w3-bar-item w3-button w3-green">Go</a> -->
-      </div>
-      <br>
-      <div class="w3-container">
-        <ul class="w3-ul w3-card-4" id="effect_list">
-        </ul>
-      </div>
+<body>
+  <div id="app">
+    <v-app>
+      <v-content>
+        <v-app-bar color="deep-purple accent-4" dense dark>
+          <v-app-bar-nav-icon></v-app-bar-nav-icon>
+          <v-spacer></v-spacer>
+          {{title}}
+          <v-spacer></v-spacer>
+          <v-btn icon>
+            <v-icon>mdi-heart</v-icon>
+          </v-btn>
+        </v-app-bar>
+        <v-container>
+          <v-row align="center">
+            <v-col class="text-center" cols="6" sm="3" xs='6'>
+              <v-btn @click='addEffect'>Add effect</v-btn>
+            </v-col>
+            <v-col class="text-center" cols="6" sm="2" xs='6'>
+              <v-btn @click='updateEffect'>Update</v-btn>
+            </v-col>
+            <v-col class="text-center" cols="4" sm="2" xs='6'>
+              <v-btn @click='start'>Start</v-btn>
+            </v-col>
+            <v-col class="text-center" cols="4" sm="2" xs='6'>
+              <v-btn @click='stop'>Stop</v-btn>
+            </v-col>
+            <v-col class="text-center" cols="4" sm="2" xs='6'>
+              <v-switch v-model='connected' :label='connected?"connected":"Disconnected"' disabled>
+              </v-switch>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <v-list-item v-for="(effect, i) in effects" :key="i">
+                <v-list-item-content>
+                  <v-row>
+                    <v-col>
+                      <v-list-item-title>
+                        <v-select :items="Object.values(available_effects)" item-text='name' item-value='id' label="Standard" v-model="effect.name" @change="changeEffect()">
+                        </v-select>
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                      </v-list-item-subtitle>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols='2' sm="3" v-if="available_effects[effect.name] != undefined">
+                      <v-btn @click='effect.showForm = ! effect.showForm'>
+                        {{ effect.showForm ? 'Close' : 'Show Form' }}
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                  <v-form v-if="available_effects[effect.name] != undefined" v-show='effect.showForm' ref="form">
+                    <v-text-field v-model="effect['options'][i]" :counter="10" :label="i" required v-for="(option, i) in available_effects[effect.name].options" :key="i"></v-text-field>
+                  </v-form>
+                  <v-btn @click='removeEffect(i)'>Remove</v-btn>
+                </v-list-item-content>
+              </v-list-item>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols='12'>
+              <div class='connection' id="connection_status">
+                {{connections_status}}
+              </div>
+              <v-col>
+          </v-row>
+        </v-container>
+      </v-content>
+    </v-app>
+  </div>
 
-      <br>
-
-      <footer>
-        <div class='connection' id="connection_status">
-          Connection Status
-        </div>
-      </footer>
-
-      <script>
-      const effects = {
-        'rainbow': {
-          name: "Rainbow",
-          img: "https://png.pngtree.com/png-vector/20190801/ourlarge/pngtree-rainbow-icon-png-image_1645018.jpg",
-          options: {
+  <script>
+    var app = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        title: 'Led Strip Effects',
+        serverUrl: `ws://${document.location.hostname}:8888/ledstrip`,
+        ledstrip: '',
+        ledstripSocket: null,
+        connected: false,
+        connections_status: '',
+        sortableList: '',
+        effects_list: '',
+        effects: [],
+        available_effects: {
+          'rainbow': {
+            id: "rainbow",
+            name: "Rainbow",
+            img: "https://png.pngtree.com/png-vector/20190801/ourlarge/pngtree-rainbow-icon-png-image_1645018.jpg",
+            options: {
               'speed': {
                 name: "Speed",
                 type: "number",
@@ -56,12 +126,31 @@
                 max: 360,
                 min: 0
               },
-          }
-        },
-        'runner': {
-          name: "Runner",
-          img: "https://www.pngitem.com/pimgs/m/43-438054_running-man-png-free-download-runner-transparent-background.png",
-          options: {
+              'start': {
+                name: "Start",
+                type: "number",
+                min: 0
+              },
+              'end': {
+                name: "End",
+                type: "number",
+                min: 0
+              },
+              'forward': {
+                name: "Forward",
+                type: "boolean"
+              },
+              'blend': {
+                name: "Blend",
+                type: "text"
+              },
+            }
+          },
+          'runner': {
+            id: "runner",
+            name: "Runner",
+            img: "https://www.pngitem.com/pimgs/m/43-438054_running-man-png-free-download-runner-transparent-background.png",
+            options: {
               'hue': {
                 name: "Hue",
                 type: "number",
@@ -104,257 +193,218 @@
                 max: 100,
                 min: 0
               },
-          }
-        },
-      }
-
-      class Effect {
-        constructor() {
-          this.htmlElement = document.createElement("LI");
-          this.htmlElement.classList.add("effect");
-          this.htmlElement.classList.add("w3-bar");
-
-          this.imgElement = document.createElement("IMG");
-          this.imgElement.classList.add("w3-bar-item", "w3-circle", "w3-hide-small")
-          this.imgElement.src = ''
-          this.imgElement.style = 'width:85px'
-          this.htmlElement.appendChild(this.imgElement);
-
-          this.closeElement = document.createElement("SPAN");
-          this.closeElement.classList.add("w3-bar-item", "w3-button", "w3-white", "w3-xlarge", "w3-right")
-          this.closeElement.innerHTML="x"
-          this.htmlElement.appendChild(this.closeElement);
-
-          this.selectElement = document.createElement("SELECT");
-          this.selectElement.classList.add("w3-select");
-          this.effect = {};
-          this.options = {};
-
-          this.divElement = document.createElement("DIV");
-          this.divElement.classList.add("w3-bar-item","w3-large");
-
-          this.spanSelectElement = document.createElement("SPAN");
-          this.spanSelectElement.classList.add("w3-large");
-
-          this.htmlElement.appendChild(this.divElement);
-
-          Object.keys(effects).forEach((key) => {
-              var optionElement = document.createElement("OPTION");
-              optionElement.innerHTML = effects[key]['name']
-              optionElement.value = key
-
-              this.selectElement.appendChild(optionElement);
-          });
-
-          this.selectElement.addEventListener("change", (event) => {
-            console.log("optionElement click")
-            this.optionsUpdate()
-          });
-
-          this.closeElement.addEventListener("click", (event) => {
-            console.log("closeElement click")
-            // this.optionsUpdate()
-          });
-
-          this.divElement.appendChild(this.selectElement);
-
-          this.optionsElement = document.createElement("DIV");
-          this.htmlElement.appendChild(this.optionsElement);
-
-          this.htmlElement.addEventListener("click", function() {
-            // this.toggle();
-            // self.state = !self.state;
-            // self.update();
-            console.log("Effect click")
-          })
-
-          this.optionsUpdate()
-        }
-
-        optionsUpdate(){
-          while (this.optionsElement.hasChildNodes()) {
-            this.optionsElement.removeChild(this.optionsElement.firstChild);
-          }
-
-          var selectedEffect = effects[this.selectElement.value]
-          var Options = effects[this.selectElement.value]['options']
-
-          this.imgElement.src = effects[this.selectElement.value].img
-
-          Object.keys(Options).forEach((key) => {
-              Option = Options[key]
-              var optionLabelElement = document.createElement('LABEL');
-              optionLabelElement.innerHTML = Option['name']
-
-              var optionInputElement = document.createElement('INPUT');
-              optionInputElement.name = Option['name']
-              optionInputElement.classList.add('w3-input')
-              optionInputElement.value = ''
-              optionInputElement.type = Option['type']
-
-              if(Option['max']){
-                  optionInputElement.max = Option['max']
-              }
-
-              if(Option['min'] != undefined ){
-                  optionInputElement.min = Option['min']
-              }
-
-              if(Option['step']){
-                  optionInputElement.step = Option['step']
-              }
-
-              this.optionsElement.appendChild(optionLabelElement);
-              this.optionsElement.appendChild(optionInputElement);
-
-              this.options[key] = optionInputElement
-          });
-        }
-
-        getEffect(){
-          var result = {name: this.selectElement.value};
-
-          var effectOptions = {}
-
-          var Options = effects[this.selectElement.value]['options'];
-
-          Object.keys(this.options).forEach((key) => {
-            if(this.options[key].value){
-              parseInt
-              if(this.options[key].type == 'number'){
-                effectOptions[key] = parseFloat(this.options[key].value)
-              }else{
-                effectOptions[key] = this.options[key].value
+              'forward': {
+                name: "Forward",
+                type: "boolean"
+              },
+            }
+          },
+          'static': {
+            id: "static",
+            name: "Static",
+            img: "",
+            options: {
+              'hue': {
+                name: "Hue",
+                type: "number",
+                max: 360,
+                min: 0
+              },
+              'start': {
+                name: "Start",
+                type: "number",
+                max: 100,
+                min: 0
+              },
+              'end': {
+                name: "End",
+                type: "number",
+                max: 100,
+                min: 0
               }
             }
+          },
+        }
+      },
+      mounted() {
+        this.addEffect()
+        // sortableList = Sortable.create(simpleList, {
+        //     animation: 150,
+        //     handle: '.handle',
+        //     ghostClass: 'blue-background-class',
+        //     // removeOnSpill: true,
+        //     onEnd: (event)=>{
+        //       console.log("end event", event);
+        //       // console.log("sortableList.list",sortableList);
+        //       this.array_move(this.effectsOrder, event.oldIndex, event.newIndex)
+        //     },
+        //     // Element is removed from the list into another list
+        //   	onRemove: function (/**Event*/evt) {
+        //   		// same properties as onEnd
+        //       console.log("onRemove",evt);
+        //   	},
+        //     onSort: function (/**Event*/evt) {
+        //   		// same properties as onEnd
+        //       console.log("sort",evt);
+        //   	},
+        // });
+
+        // var serverUrl = `ws://${document.location.hostname}:8888/ledstrip`;
+
+
+        this.connectWebsocket();
+      },
+      methods: {
+        changeEffect() {
+          console.log("changeEffect");
+          console.log(this.effects);
+
+          this.effects.forEach((ele, i) => {
+            console.log("Effect", i, ele.effect);
           })
-
-          result['options'] = effectOptions;
-
-          return result
-        }
-      }
-
-      class Effect_list {
-        constructor(htmlElement) {
-          this.htmlElement = htmlElement;
-
-          this.effects = []
-        }
-
-        addEffect(effect){
-          this.effects.push(effect)
-          this.htmlElement.appendChild(effect.htmlElement);
-        }
-
-        removeEffect(effect){
-          this.effects.push(effect)
-          this.htmlElement.appendChild(effect.htmlElement);
-        }
-
-        getEffectsList(){
-          var result = []
-
-          this.effects.forEach((item, i) => {
-            result.push(item.getEffect())
-          });
-
-          return result
-        }
-      }
-      </script>
-      <script>
-      function connectWebsocket(serverUrl) {
-        var ws = new WebSocket(serverUrl);
-
-        ws.onopen = function() {
-          console.log('Connected to ', serverUrl);
-          connectionStatusElement.innerHTML = 'Connected to ' + serverUrl
-        };
-
-        ws.onmessage = function(e) {
-          console.log('Message:', e.data);
-          connectionStatusElement.innerHTML = 'Message ' + e.data
-        };
-
-        ws.onclose = function(e) {
-          if (e.wasClean) {
-            connectionStatusElement.innerHTML = 'Connection Close'
-            console.info(`[close] Connection closed cleanly, code=${e.code} reason=${e.reason}`);
-          } else {
-            console.error('[close] Connection died');
-            connectionStatusElement.innerHTML = 'Connection died'
-
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e);
-            setTimeout(function() {
-              connectionStatusElement.innerHTML = 'Connection retry'
-              connectWebsocket(serverUrl);
-            }, 1000);
-          }
-        };
-
-        ws.onerror = function(err) {
-          console.error('Socket encountered error: ', err.message, 'Closing socket');
-          connectionStatusElement.innerHTML = 'Error: ' + err.message
-          ws.close();
-        };
-
-        ledstripSocket = ws;
-      }
-      </script>
-      <script>
-        var interval;
-        var effect_list_html = document.getElementById("effect_list")
-        var connectionStatusElement = document.getElementById("connection_status")
-
-        var serverUrl = `ws://${document.location.hostname}:8888/ledstrip`;
-
-        console.log(serverUrl);
-
-        var ledstripSocket;
-
-        connectWebsocket(serverUrl)
-
-        var effect_list = new Effect_list(effect_list_html);
-
-        function addEffect(){
-          effect_list.addEffect(new Effect())
-        }
-
-        function stop(){
-          var msg = {
-            type: "action",
-            action: "stop",
-            date: Date.now()
-          };
-          console.log(JSON.stringify(msg))
-
-          ledstripSocket.send(JSON.stringify(msg));
-        }
-
-        function start(){
+        },
+        start() {
           var msg = {
             type: "action",
             action: "start",
             date: Date.now()
           };
-          console.log(JSON.stringify(msg))
 
-          ledstripSocket.send(JSON.stringify(msg));
-        }
+          this.ledstripSocket.send(JSON.stringify(msg));
+        },
+        stop() {
+          var msg = {
+            type: "action",
+            action: "stop",
+            date: Date.now()
+          };
 
-        function update(){
+          this.ledstripSocket.send(JSON.stringify(msg));
+        },
+        updateEffect() {
+          var effect_list = [];
+
+          this.effects.forEach((ele, i) => {
+
+            if (!ele.name) {
+              return
+            }
+
+            var effect = {};
+            effect['name'] = ele.name;
+            effect['options'] = ele.options;
+
+            for (option in effect['options']) {
+              if (this.available_effects[effect.name]['options'][option]) {
+                console.log("option: ", option, this.available_effects[effect.name]['options'][option]['type']);
+                if (this.available_effects[effect.name]['options'][option]['type'] == 'number') {
+                  effect['options'][option] = parseFloat(effect['options'][option])
+                } else {
+                  effect['options'][option] = effect['options'][option]
+                }
+              }
+            }
+
+            effect_list.push(effect);
+          })
+
           var msg = {
             action: "change",
-            effects: effect_list.getEffectsList(),
+            effects: effect_list,
             date: Date.now()
           };
 
           console.log(JSON.stringify(msg))
 
-          ledstripSocket.send(JSON.stringify(msg));
-        }
+          this.ledstripSocket.send(JSON.stringify(msg));
+        },
+        addEffect() {
+          var newEffect = {
+            title: `New Effect ${this.effects.length}`,
+            effect: 'raibown',
+            options: {},
+            showForm: false
+          };
 
-      </script>
-    </body>
+          this.effects.push(newEffect)
+        },
+        removeEffect(index) {
+          console.log("remove index", index);
+          this.effects.splice(index, 1)
+        },
+        array_move(arr, old_index, new_index) {
+          //https://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another
+          if (new_index >= arr.length) {
+            var k = new_index - arr.length + 1;
+            while (k--) {
+              arr.push(undefined);
+            }
+          }
+          arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+        },
+        connectWebsocket() {
+          this.ledstripSocket = new WebSocket(this.serverUrl);
+
+          var self = this;
+
+          this.ledstripSocket.onopen = function() {
+            self.connections_status = 'Connected to ' + self.serverUrl
+            self.connected = true;
+          };
+
+          this.ledstripSocket.onmessage = function(e) {
+            this.connections_status = 'Message ' + e.data
+
+            try {
+              var data = JSON.parse(e.data)
+
+              var ledstrip = data['ledstrip'];
+              var effects = data['effects'];
+
+              effects.forEach((item, i) => {
+                console.log('effect:', item);
+                item['showForm'] = false
+              });
+
+              self.effects = effects
+              self.ledstrip = ledstrip
+
+              console.log('ledstrip:', ledstrip);
+            } catch (e) {
+              console.error(e);
+            } finally {}
+          };
+
+          this.ledstripSocket.onclose = function(e) {
+            self.connected = false;
+            if (e.wasClean) {
+              self.connections_status = 'Connection Close'
+              console.info(`[close] Connection closed cleanly, code=${e.code} reason=${e.reason}`);
+            } else {
+              console.error('[close] Connection died');
+              self.connections_status = 'Connection died'
+
+              console.log('Socket is closed. Reconnect will be attempted in 1 second.', e);
+              setTimeout(function() {
+                self.connections_status = 'Connection retry'
+                self.connectWebsocket();
+              }, 1000);
+            }
+          };
+
+          this.ledstripSocket.onerror = function(err) {
+            console.error('Socket encountered error: ', err.message, 'Closing socket');
+            self.connections_status = 'Error: ' + err.message
+            self.ledstripSocket.close();
+          };
+        }
+      }
+    })
+  </script>
+  <style>
+    .handle {
+      cursor: grab;
+    }
+  </style>
+</body>
 </html>

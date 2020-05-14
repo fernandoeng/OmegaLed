@@ -4,6 +4,14 @@
 class GenericEffect:
     """DocString"""
     def __init__(self):
+        self.name = "generic"
+
+        self.options = {
+            "speed": "speed",
+            "start": "start",
+            "end": "start",
+        }
+
         self.led_strip = None
         self.speed = 1
         self.start = 0
@@ -37,6 +45,9 @@ class GenericEffect:
         elif effect_name == 'runner':
             from effects.runner import RunnerEffect
             effect = RunnerEffect(**kwargs)
+        elif effect_name == 'static':
+            from effects.static import StaticEffect
+            effect = StaticEffect(**kwargs)
 
         return effect
 
@@ -47,3 +58,15 @@ class GenericEffect:
             self.end = self.led_strip.size()
 
         self.reset()
+
+    def to_json(self):
+        """To Json"""
+        result = {
+            "name": self.name,
+            "options" : {}
+        }
+
+        for option in self.options:
+            result['options'][option] = getattr(self, option)
+
+        return result

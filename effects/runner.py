@@ -9,6 +9,23 @@ class RunnerEffect(GenericEffect):
     """DocString"""
     def __init__(self, **kwargs):
         """DocString"""
+        self.name = "runner"
+
+        self.options = {
+            "speed": "speed",
+            "size": "size",
+            "start": "start",
+            "end": "start",
+            "hue": "hue",
+            "saturation": "saturation",
+            "brightness": "brightness",
+            "forward": "forward",
+            "edge_bounce": "edge_bounce",
+            "repeat": "repeat",
+            "position": "position",
+            "effects": "effects",
+        }
+
         self.running = True
 
         self.hue = kwargs.get('hue', None)
@@ -38,6 +55,11 @@ class RunnerEffect(GenericEffect):
 
         if self.end > 0 and self.position > self.end:
             self.position = self.end
+
+        try:
+            self.hue = int(self.hue) % 360
+        except Exception as error:
+            print(error)
 
     def add_effect(self, effect):
         """DocString"""
