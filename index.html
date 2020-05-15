@@ -11,9 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-
-  <!-- <script src="http://SortableJS.github.io/Sortable/Sortable.js"></script>
-  <script src="https://unpkg.com/vue-sortable@latest"></script> -->
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -31,48 +29,88 @@
         </v-app-bar>
         <v-container>
           <v-row align="center">
-            <v-col class="text-center" cols="6" sm="3" xs='6'>
-              <v-btn @click='addEffect'>Add effect</v-btn>
+            <v-col class="text-center" cols="8" sm="6" xs='12' class='ma-0 pa-0'>
+              <v-btn icon outlined large color="indigo" @click='addEffect' class='ma-1'>
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+              <v-btn icon outlined large color="indigo" @click='updateEffect' class='ma-1'>
+                <v-icon>mdi-upload</v-icon>
+              </v-btn>
+              <v-btn icon outlined large color="indigo" @click='start' class='ma-1'>
+                <v-icon>mdi-play</v-icon>
+              </v-btn>
+              <v-btn icon outlined large color="indigo" @click='stop' class='ma-1'>
+                <v-icon>mdi-stop</v-icon>
+              </v-btn>
             </v-col>
-            <v-col class="text-center" cols="6" sm="2" xs='6'>
-              <v-btn @click='updateEffect'>Update</v-btn>
-            </v-col>
-            <v-col class="text-center" cols="4" sm="2" xs='6'>
-              <v-btn @click='start'>Start</v-btn>
-            </v-col>
-            <v-col class="text-center" cols="4" sm="2" xs='6'>
-              <v-btn @click='stop'>Stop</v-btn>
-            </v-col>
-            <v-col class="text-center" cols="4" sm="2" xs='6'>
+            <v-col class="text-center" cols="4" sm="2" xs='6' class='ma-0 pa-0'>
               <v-switch v-model='connected' :label='connected?"connected":"Disconnected"' disabled>
               </v-switch>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <v-list-item v-for="(effect, i) in effects" :key="i">
+              <v-list-item dense v-for="(effect, effectIndex) in effects" :key="effectIndex">
                 <v-list-item-content>
-                  <v-row>
-                    <v-col>
-                      <v-list-item-title>
+                  <v-system-bar v-bind:style="effect.style"></v-system-bar>
+                  <v-list-item-title>
+                    <v-row>
+                      <v-col cols='4'>
                         <v-select :items="Object.values(available_effects)" item-text='name' item-value='id' label="Standard" v-model="effect.name" @change="changeEffect()">
                         </v-select>
-                      </v-list-item-title>
-                      <v-list-item-subtitle>
-                      </v-list-item-subtitle>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols='2' sm="3" v-if="available_effects[effect.name] != undefined">
-                      <v-btn @click='effect.showForm = ! effect.showForm'>
-                        {{ effect.showForm ? 'Close' : 'Show Form' }}
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                  <v-form v-if="available_effects[effect.name] != undefined" v-show='effect.showForm' ref="form">
-                    <v-text-field v-model="effect['options'][i]" :counter="10" :label="i" required v-for="(option, i) in available_effects[effect.name].options" :key="i"></v-text-field>
-                  </v-form>
-                  <v-btn @click='removeEffect(i)'>Remove</v-btn>
+                      </v-col>
+                      <v-col cols='8' sm="8" v-if="available_effects[effect.name] != undefined">
+                        <div class="text-center">
+                          <v-btn icon outlined large color="indigo" @click='effect.showForm = ! effect.showForm'>
+                            <v-icon v-if='!effect.showForm'>mdi-menu-down</v-icon>
+                            <v-icon v-if='effect.showForm'>mdi-menu-up</v-icon>
+                          </v-btn>
+                          <v-btn icon outlined large color="indigo" @click='moveUp(effectIndex)' :disabled="effectIndex<1">
+                            <v-icon>mdi-chevron-up</v-icon>
+                          </v-btn>
+                          <v-btn icon outlined large color="indigo" @click='moveDown(effectIndex)' :disabled="effectIndex>effects.length-2">
+                            <v-icon>mdi-chevron-down</v-icon>
+                          </v-btn>
+                          <v-btn icon outlined large color="error" @click='removeEffect(effectIndex)'>
+                            <v-icon>mdi-delete-forever-outline</v-icon>
+                          </v-btn>
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-list-item-title>
+                  <v-list-item-subtitle class='pa-4' v-show='effect.showForm'>
+                    <template v-for="(option, optionsIndex) in available_effects[effect.name].options">
+                      <!-- <v-slider
+                        v-if="option.type === 'number'"
+                        v-model="effect['options'][optionsIndex]"
+                        :key="optionsIndex"
+                        @change='optionChange(effect, option, effectIndex)'
+                        color="indigo"
+                        :label="optionsIndex"
+                        :min="option.min"
+                        :max="option.max"
+                        thumb-label
+                      ></v-slider> -->
+                      <!-- <v-switch
+                        v-else-if="option.type === 'boolean'"
+                        dense
+                        v-model="effect['options'][optionsIndex]"
+                        :label="optionsIndex"
+                        :key="optionsIndex"
+                        @change='optionChange(effect, option, effectIndex)'>
+                      </v-text-field> -->
+                      <v-text-field
+                        :type="option.type"
+                        dense
+                        clearable
+                        v-model="effect['options'][optionsIndex]"
+                        :label="optionsIndex"
+                        :key="optionsIndex"
+                        @change='optionChange(effect, option, effectIndex)'>
+                      </v-text-field>
+
+                    </template>
+                  </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
             </v-col>
@@ -96,7 +134,7 @@
       data: {
         title: 'Led Strip Effects',
         serverUrl: `ws://${document.location.hostname}:8888/ledstrip`,
-        ledstrip: '',
+        ledstrip: {},
         ledstripSocket: null,
         connected: false,
         connections_status: '',
@@ -228,31 +266,11 @@
       },
       mounted() {
         this.addEffect()
-        // sortableList = Sortable.create(simpleList, {
-        //     animation: 150,
-        //     handle: '.handle',
-        //     ghostClass: 'blue-background-class',
-        //     // removeOnSpill: true,
-        //     onEnd: (event)=>{
-        //       console.log("end event", event);
-        //       // console.log("sortableList.list",sortableList);
-        //       this.array_move(this.effectsOrder, event.oldIndex, event.newIndex)
-        //     },
-        //     // Element is removed from the list into another list
-        //   	onRemove: function (/**Event*/evt) {
-        //   		// same properties as onEnd
-        //       console.log("onRemove",evt);
-        //   	},
-        //     onSort: function (/**Event*/evt) {
-        //   		// same properties as onEnd
-        //       console.log("sort",evt);
-        //   	},
-        // });
 
         // var serverUrl = `ws://${document.location.hostname}:8888/ledstrip`;
 
 
-        this.connectWebsocket();
+          this.connectWebsocket();
       },
       methods: {
         changeEffect() {
@@ -280,6 +298,43 @@
           };
 
           this.ledstripSocket.send(JSON.stringify(msg));
+        },
+        updateEffectPreview(effect) {
+          var ledStart = effect['options']['start'];
+          var ledEnd = effect['options']['end'];
+
+          if (typeof(ledStart) === "undefined") {
+            ledStart = 0
+          }
+
+          if (typeof(ledEnd) === "undefined") {
+            try {
+              ledEnd = this.ledstrip.size;
+            } catch (e) {
+              ledEnd = 0
+            }
+          }
+
+          if (typeof(effect['options']['hue']) !== "undefined") {
+            effect['style']['backgroundColor'] = 'hsl(' + effect['options']['hue'] + ', 100%, 50%)';
+          } else if (typeof(effect['options']['hue_start']) !== "undefined" && typeof(effect['options']['hue_end']) !== "undefined") {
+            effect['style']['backgroundColor'] = '';
+            var ledCount = ledEnd - ledStart;
+            var hueCount = effect['options']['hue_end'] - effect['options']['hue_start'];
+            var hueStep = hueCount / ledCount;
+
+            var gradient_colors = ""
+
+            for (var i = 0; i < ledCount; i++) {
+              gradient_colors += ', hsl( ' + (parseInt(effect['options']['hue_start']) + parseInt(hueStep * i)) + ', 100%, 50%) ';
+            }
+
+            effect['style']['backgroundImage'] = `linear-gradient(to right ${gradient_colors})`;
+
+            console.log("gradient_colors", gradient_colors);
+          } else {
+            effect['style']['backgroundColor'] = '';
+          }
         },
         updateEffect() {
           var effect_list = [];
@@ -316,21 +371,43 @@
 
           console.log(JSON.stringify(msg))
 
-          this.ledstripSocket.send(JSON.stringify(msg));
+          try {
+            this.ledstripSocket.send(JSON.stringify(msg));
+          } catch (e) {
+            console.log(e);
+          }
         },
         addEffect() {
+          var firstAvailableEffect = this.available_effects[Object.keys(this.available_effects)[0]]
+
           var newEffect = {
             title: `New Effect ${this.effects.length}`,
-            effect: 'raibown',
+            name: firstAvailableEffect.id,
             options: {},
-            showForm: false
+            showForm: false,
+            style: {
+              backgroundColor: ''
+            }
           };
 
-          this.effects.push(newEffect)
+          this.effects.push(newEffect);
         },
         removeEffect(index) {
           console.log("remove index", index);
           this.effects.splice(index, 1)
+        },
+        moveUp(index) {
+          if (index > 0) {
+            this.array_move(this.effects, index, index - 1)
+          }
+        },
+        moveDown(index) {
+          if (index < this.effects.length - 1) {
+            this.array_move(this.effects, index, index + 1)
+          }
+        },
+        optionChange(effect, option, index) {
+          this.updateEffectPreview(effect);
         },
         array_move(arr, old_index, new_index) {
           //https://stackoverflow.com/questions/5306680/move-an-array-element-from-one-array-position-to-another
@@ -361,9 +438,11 @@
               var ledstrip = data['ledstrip'];
               var effects = data['effects'];
 
-              effects.forEach((item, i) => {
-                console.log('effect:', item);
-                item['showForm'] = false
+              effects.forEach((effect, i) => {
+                effect['showForm'] = false
+                effect['style'] = {}
+
+                self.updateEffectPreview(effect);
               });
 
               self.effects = effects
@@ -407,4 +486,5 @@
     }
   </style>
 </body>
+
 </html>
