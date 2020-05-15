@@ -45,7 +45,7 @@ class RainbowEffect(GenericEffect):
         if self.forward:
             index = 0
             while index < self.count:
-                self.state[index] = index * self.hue_step
+                self.state[index] = index * self.hue_step + self.hue_start
                 index = index + 1
         else:
             index = self.end - 1
