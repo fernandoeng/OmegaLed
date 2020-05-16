@@ -7,22 +7,63 @@ class Color:
     """DocString"""
     def __init__(self, hue, saturation=1, brightness=1):
         """DocString"""
-        self.hue = hue
+        self.hue = None
         self.saturation = saturation
         self.brightness = brightness
 
-        try:
-            self.hue = int(self.hue) % 360
-        except Exception as error:
-            print(error)
+        self.set_hue(hue)
 
     def get_rgb_color(self):
+        """Get RGB color"""
+        result = colorsys.hsv_to_rgb(self.hue/360.0, self.saturation, self.brightness)
+        return result
+
+    def set_hue(self, hue):
+        """Set hue, min 0 max 360"""
+        if hue is not None:
+            self.hue = hue % 360
+            if self.hue < 0:
+                self.hue = 0 - self.hue
+
+    def get_hue(self):
+        """Get hue"""
+        return self.hue
+
+    def set_brightness(self, brightness):
         """DocString"""
-        return colorsys.hsv_to_rgb(self.hue/360.0, self.saturation, self.brightness)
+        if brightness is not None:
+            self.brightness = brightness
+            if self.brightness < 0:
+                self.brightness = 0
+            elif self.brightness > 1:
+                self.brightness = 1
+
+    def set_saturation(self, saturation):
+        """DocString"""
+        if saturation is not None:
+            self.saturation = saturation
+            if self.saturation < 0:
+                self.saturation = 0
+            elif self.saturation > 1:
+                self.saturation = 1
+
+    def set_color(self, color):
+        """Set led color"""
+        if color.hue and color.hue is not None:
+            self.set_hue(color.hue)
+
+    def blend_sum_color(self, color):
+        """Blend color with hue sum"""
+        if color.hue and color.hue is not None:
+            self.set_hue(self.hue + color.hue)
+        # if color.brightness and color.brightness is not None:
+        #     self.brightness = self.brightness + color.brightness
+        # if color.saturation and color.saturation is not None:
+        #     self.saturation = self.saturation + color.saturation
 
     def __str__(self):
         """DocString"""
-        return "{} {} {}".format(self.hue, self.saturation, self.brightness)
+        return "hue: {} Sat: {} Bri: {}".format(self.hue, self.saturation, self.brightness)
 
 BLUE = Color(240, 1, 1)
 RED = Color(0, 1, 1)

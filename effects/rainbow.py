@@ -1,4 +1,4 @@
-"""DocString"""
+"""Rainbow Effect"""
 
 
 from generic import GenericEffect
@@ -60,13 +60,5 @@ class RainbowEffect(GenericEffect):
         index = 0
         while index < self.count:
             self.state[index] = self.state[index] + int(self.speed)
-            if self.blend == 'sum':
-                actual_color = self.led_strip.get_led(index).get_color()
-                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index] + int(actual_color.hue), None, None))
-            elif self.blend == 'multiply':
-                actual_color = self.led_strip.get_led(index).get_color()
-                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index] * int(actual_color.hue), None, None))
-            else:
-                self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.state[index], None, None))
-
+            self.set_led((index + self.start), Color(self.state[index], None, None))
             index = index + 1

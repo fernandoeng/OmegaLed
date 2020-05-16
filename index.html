@@ -101,6 +101,7 @@
                       </v-text-field> -->
                       <v-text-field
                         :type="option.type"
+                        :step="option.step"
                         dense
                         clearable
                         v-model="effect['options'][optionsIndex]"
@@ -235,6 +236,14 @@
                 name: "Forward",
                 type: "boolean"
               },
+              'edge_bounce': {
+                name: "Edge Bounce",
+                type: "boolean"
+              },
+              'blend': {
+                name: "Blend",
+                type: "text"
+              },
             }
           },
           'static': {
@@ -248,6 +257,20 @@
                 max: 360,
                 min: 0
               },
+              'saturation': {
+                name: "Saturation",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
+              'brightness': {
+                name: "Brightness",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
               'start': {
                 name: "Start",
                 type: "number",
@@ -259,7 +282,55 @@
                 type: "number",
                 max: 100,
                 min: 0
-              }
+              },
+              'blend': {
+                name: "Blend",
+                type: "text"
+              },
+            }
+          },
+          'breathing': {
+            id: "breathing",
+            name: "Breathing",
+            img: "",
+            options: {
+              'speed': {
+                name: "Brightness",
+                type: "number",
+                max: 100,
+                min: 0,
+                step: 0.01
+              },
+              'min_brightness': {
+                name: "min_brightness",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
+              'max_brightness': {
+                name: "max_brightness",
+                type: "number",
+                max: 1,
+                min: 0,
+                step: 0.01
+              },
+              'start': {
+                name: "start",
+                type: "number",
+                max: 100,
+                min: 0
+              },
+              'end': {
+                name: "End",
+                type: "number",
+                max: 100,
+                min: 0
+              },
+              'blend': {
+                name: "Blend",
+                type: "text"
+              },
             }
           },
         }
@@ -430,25 +501,35 @@
           };
 
           this.ledstripSocket.onmessage = function(e) {
-            this.connections_status = 'Message ' + e.data
+            self.connections_status = 'Message ' + e.data
 
             try {
               var data = JSON.parse(e.data)
 
+              // console.log('ledstrip:', ledstrip);
+
               var ledstrip = data['ledstrip'];
               var effects = data['effects'];
 
-              effects.forEach((effect, i) => {
-                effect['showForm'] = false
-                effect['style'] = {}
+              if(typeof(effects) !== 'undefined'){
+                effects.forEach((effect, i) => {
+                  effect['showForm'] = false
+                  effect['style'] = {}
 
-                self.updateEffectPreview(effect);
-              });
+                  self.updateEffectPreview(effect);
+                });
 
-              self.effects = effects
-              self.ledstrip = ledstrip
+                self.effects = effects
+                console.log('effects:', effects);
+              }
 
-              console.log('ledstrip:', ledstrip);
+
+              if(typeof(ledstrip) !== 'undefined'){
+                self.ledstrip = ledstrip
+                console.log('ledstrip:', ledstrip);
+              }
+
+
             } catch (e) {
               console.error(e);
             } finally {}

@@ -1,12 +1,24 @@
-"""DocString"""
+"""Breathing effect"""
 
 
 from generic import GenericEffect
+from models.color import Color
 
 class BrighbreathingEffect(GenericEffect):
     """DocString"""
     def __init__(self, **kwargs):
         """DocString"""
+        self.name = "breathing"
+
+        self.options = {
+            "speed": "speed",
+            "min_brightness": "min_brightness",
+            "max_brightness": "max_brightness",
+            "start": "start",
+            "end": "start",
+            "blend": "blend"
+        }
+
         self.enable = True
 
         self.speed = kwargs.get('speed', 0.01)
@@ -18,6 +30,7 @@ class BrighbreathingEffect(GenericEffect):
         self.end = kwargs.get('end', -1)
         self.forward = kwargs.get('forward', True)
         self.brightness = kwargs.get('brightness', 1.0)
+        self.blend = kwargs.get('blend', None)
 
         if self.min_brightness > 1:
             self.min_brightness = 1
@@ -54,9 +67,7 @@ class BrighbreathingEffect(GenericEffect):
         if self.enable:
             index = self.start
             while index < self.end:
-                # self.led_strip.leds[index].set_brightness(self.brightness)
-
-                self.led_strip.set_led_brightness(index, self.brightness)
+                self.set_led((index + self.start), Color(None, None, self.brightness))
                 index = index + 1
 
     def position_int(self):

@@ -1,4 +1,4 @@
-"""DocString"""
+"""Static Color"""
 
 
 from generic import GenericEffect
@@ -12,13 +12,19 @@ class StaticEffect(GenericEffect):
 
         self.options = {
             "hue": "hue",
+            "brightness": "brightness",
+            "saturation": "saturation",
             "start": "start",
-            "end": "start"
+            "end": "start",
+            "blend": "blend"
         }
 
         self.start = kwargs.get('start', 0)
         self.end = kwargs.get('end', -1)
         self.hue = kwargs.get('hue', True)
+        self.brightness = kwargs.get('brightness', None)
+        self.saturation = kwargs.get('saturation', None)
+        self.blend = kwargs.get('blend', 'default')
         self.count = 0
 
         try:
@@ -26,13 +32,9 @@ class StaticEffect(GenericEffect):
         except Exception as error:
             print(error)
 
-    def reset(self):
-        """DocString"""
-        self.count = self.end - self.start
-
     def iterate(self):
         """DocString"""
         index = 0
         while index < self.count:
-            self.led_strip.set_led(position=(index + self.start), state=True, color=Color(self.hue, None, None))
+            self.set_led((index + self.start), Color(self.hue, self.saturation, self.brightness))
             index = index + 1

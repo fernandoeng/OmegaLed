@@ -36,6 +36,8 @@ def change(effects):
         print(clients[key].uuid)
         clients[key].send_led_strip_info()
 
+    json.dump(effects, open("./effect.store", "w"))
+
 clients = {}
 
 
@@ -99,7 +101,7 @@ class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W
     def keep_alive(self):
         """Keep alive"""
         if time.time() - self.last > 10:
-            self.write_message("{'message','keep Alive'}")
+            self.write_message(u'{"message":"keep Alive"}')
             self.last = time.time()
 
     def on_message(self, message):
@@ -115,7 +117,7 @@ class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W
         if data['action'] == 'change':
             if 'effects' in data:
                 change(data['effects'])
-                self.write_message(u"Changes done!")
+                self.write_message(u'{"message":"Changes done!"}')
 
     def on_close(self):
         """on_close"""
@@ -140,7 +142,12 @@ if __name__ == "__main__":
     app = make_app()
     app.listen(8888)
 
-    strip.add_effect_by_name("rainbow", options={"hue_end": 60})
+    try:
+        effects = json.load(open("./effect.store", "r"))
+        change(effects)
+    except Exception as error:
+        print('Could not load from file, error: {}',format(error))
+        strip.add_effect_by_name("rainbow", options={"hue_end": 60})
 
     start()
 

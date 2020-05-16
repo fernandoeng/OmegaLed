@@ -16,12 +16,15 @@ class GenericEffect:
         self.speed = 1
         self.start = 0
         self.end = -1
+        self.count = 0
+        self.blend = 'default'
 
     def iterate(self):
         """DocString"""
 
     def reset(self):
         """DocString"""
+        self.count = self.end - self.start
 
     def set_speed(self, speed):
         """DocString"""
@@ -48,11 +51,19 @@ class GenericEffect:
         elif effect_name == 'static':
             from effects.static import StaticEffect
             effect = StaticEffect(**kwargs)
+        elif effect_name == 'breathing':
+            from effects.brightbreathing import BrighbreathingEffect
+            effect = BrighbreathingEffect(**kwargs)
 
         return effect
 
+    def set_led(self, index, color, state=True):
+        """Generic set Led"""
+        self.led_strip.get_led(index).blend(color, self.blend)
+        self.led_strip.get_led(index).turn(state)
+
     def atatch_led_strip(self, led_strip):
-        """DocString"""
+        """Generic Atach led strip"""
         self.led_strip = led_strip
         if self.end < 0:
             self.end = self.led_strip.size()

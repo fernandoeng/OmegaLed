@@ -1,4 +1,4 @@
-"""DocString"""
+"""Runner Effect"""
 
 
 from generic import GenericEffect
@@ -24,6 +24,7 @@ class RunnerEffect(GenericEffect):
             "repeat": "repeat",
             "position": "position",
             "effects": "effects",
+            "blend": "blend",
         }
 
         self.running = True
@@ -42,6 +43,8 @@ class RunnerEffect(GenericEffect):
         self.edge_bounce = kwargs.get('edge_bounce', True)
         self.repeat = kwargs.get('repeat', True)
         self.forward = kwargs.get('forward', True)
+
+        self.blend = kwargs.get('blend', 'default')
 
         self.position = kwargs.get('position', 0)
         self.initial_position = self.position
@@ -79,14 +82,13 @@ class RunnerEffect(GenericEffect):
             in_frame_led_count = 1
 
             if (self.position_int() - self.start) < self.size:
-                in_frame_led_count = self.position_int() - self.start
+                in_frame_led_count = self.position_int() - self.start + 1
             else:
                 in_frame_led_count = self.size
 
             while index < in_frame_led_count:
-                if (self.position_int() - index) > self.start and (self.position_int() - index) < self.end:
-                    self.led_strip.set_led(position=(self.position_int() - index), state=True, color=self.sub_led_strip.get_led(index).get_color())
-                    # print(self.sub_led_strip.get_led(index).get_color())
+                if (self.position_int() - index) >= self.start and (self.position_int() - index) < self.end:
+                    self.set_led((self.position_int() - index), self.sub_led_strip.get_led(index).get_color())
                 index = index + 1
 
             if self.forward:
@@ -94,14 +96,14 @@ class RunnerEffect(GenericEffect):
             else:
                 self.position = self.position - self.speed
 
-            if self.position > self.end + self.size or self.position < self.start:
+            if self.position_int() > self.end + self.size or self.position_int() < self.start - 1:
                 if self.edge_bounce:
                     self.forward = not self.forward
 
-                    if self.forward:
-                        self.position = self.position + self.speed
-                    else:
-                        self.position = self.position - self.speed
+                    # if self.forward:
+                    #     self.position = self.position + self.speed
+                    # else:
+                    #     self.position = self.position - self.speed
                 elif self.repeat:
                     self.position = self.start
                     # self.position = self.initial_position

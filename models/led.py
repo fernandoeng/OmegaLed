@@ -8,9 +8,6 @@ class Led:
         self.state = False
         self.hex_color = [1, 1, 1]
         self.color = Color(0, 1, 1)
-        self.hue = 0
-        self.saturation = 100
-        self.brightness = 100
 
     def set_color(self, color):
         """DocString"""
@@ -33,15 +30,15 @@ class Led:
 
     def set_hue(self, hue):
         """DocString"""
-        self.hue = hue % 360
+        self.color.set_hue(hue)
 
     def get_hue(self):
         """DocString"""
-        return self.hue
+        return self.color.get_hue()
 
     def set_saturation(self, saturation):
         """DocString"""
-        self.color.saturation = saturation % 360
+        self.color.saturation = saturation
 
     def get_saturation(self):
         """DocString"""
@@ -61,6 +58,16 @@ class Led:
     def get_brightness(self):
         """DocString"""
         return self.color.brightness
+
+    def blend(self, color, mode=None):
+        """Blend color mode"""
+        if mode is None:
+            self.set_color(color)
+
+        if mode == 'sum':
+            self.color.blend_sum_color(color)
+        else:
+            self.set_color(color)
 
     def turn(self, state):
         """DocString"""
