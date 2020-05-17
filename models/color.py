@@ -8,10 +8,12 @@ class Color:
     def __init__(self, hue, saturation=1, brightness=1):
         """DocString"""
         self.hue = None
-        self.saturation = saturation
-        self.brightness = brightness
+        self.saturation = None
+        self.brightness = None
 
         self.set_hue(hue)
+        self.set_saturation(saturation)
+        self.set_brightness(brightness)
 
     def get_rgb_color(self):
         """Get RGB color"""
@@ -64,6 +66,10 @@ class Color:
     def __str__(self):
         """DocString"""
         return "hue: {} Sat: {} Bri: {}".format(self.hue, self.saturation, self.brightness)
+
+    def to_json(self):
+        """DocString"""
+        return "{ 'hue': {}, 'saturation': {}, 'brightness': {} }".format(self.hue, self.saturation, self.brightness)
 
 BLUE = Color(240, 1, 1)
 RED = Color(0, 1, 1)

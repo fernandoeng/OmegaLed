@@ -54,13 +54,20 @@ class GenericEffect:
         elif effect_name == 'breathing':
             from effects.brightbreathing import BrighbreathingEffect
             effect = BrighbreathingEffect(**kwargs)
+        elif effect_name == 'pulse':
+            from effects.pulse import PulseEffect
+            effect = PulseEffect(**kwargs)
 
         return effect
 
     def set_led(self, index, color, state=True):
         """Generic set Led"""
-        self.led_strip.get_led(index).blend(color, self.blend)
-        self.led_strip.get_led(index).turn(state)
+        if self.start <= index < self.end:
+            try:
+                self.led_strip.get_led(index).blend(color, self.blend)
+                self.led_strip.get_led(index).turn(state)
+            except Exception as e:
+                print("failt to set led at index {}".format(index))
 
     def atatch_led_strip(self, led_strip):
         """Generic Atach led strip"""
@@ -78,6 +85,7 @@ class GenericEffect:
         }
 
         for option in self.options:
-            result['options'][option] = getattr(self, option)
+            if type(getattr(self, option)) is not object:
+                result['options'][option] = getattr(self, option)
 
         return result

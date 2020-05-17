@@ -175,7 +175,7 @@ class LedStrip:
             "running": self.running,
             "animation_speed": self.animation_speed,
             "frames_per_second": self.frames_per_second,
-            "background_color": self.background_color,
+            # "background_color": self.background_color.to_json(),
         }
 
         return result

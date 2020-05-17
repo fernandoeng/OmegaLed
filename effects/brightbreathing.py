@@ -30,7 +30,7 @@ class BrighbreathingEffect(GenericEffect):
         self.end = kwargs.get('end', -1)
         self.forward = kwargs.get('forward', True)
         self.brightness = kwargs.get('brightness', 1.0)
-        self.blend = kwargs.get('blend', None)
+        self.blend = kwargs.get('blend', 'default')
 
         if self.min_brightness > 1:
             self.min_brightness = 1

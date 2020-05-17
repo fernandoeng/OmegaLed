@@ -10,6 +10,7 @@ import tornado.websocket
 import tornado.web
 
 from models.led_strip import LedStrip
+from models.color import Color
 
 
 strip = LedStrip(14)
@@ -148,6 +149,8 @@ if __name__ == "__main__":
     except Exception as error:
         print('Could not load from file, error: {}',format(error))
         strip.add_effect_by_name("rainbow", options={"hue_end": 60})
+
+    strip.set_background_color(Color(0,0,0))
 
     start()
 

@@ -33,6 +33,8 @@ class RainbowEffect(GenericEffect):
         self.end = kwargs.get('end', -1)
         self.forward = kwargs.get('forward', True)
         self.blend = kwargs.get('blend', 'default')
+        self.saturation = kwargs.get('saturation', 1)
+        self.brightness = kwargs.get('brightness', 1)
 
 
     def reset(self):
@@ -60,5 +62,5 @@ class RainbowEffect(GenericEffect):
         index = 0
         while index < self.count:
             self.state[index] = self.state[index] + int(self.speed)
-            self.set_led((index + self.start), Color(self.state[index], None, None))
+            self.set_led((index + self.start), Color(self.state[index], self.saturation, self.brightness))
             index = index + 1
