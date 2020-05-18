@@ -67,7 +67,7 @@ class GenericEffect:
                 self.led_strip.get_led(index).blend(color, self.blend)
                 self.led_strip.get_led(index).turn(state)
             except Exception as e:
-                print("failt to set led at index {}".format(index))
+                print("failt to set led at index {} {}".format(index,str(e)))
 
     def atatch_led_strip(self, led_strip):
         """Generic Atach led strip"""

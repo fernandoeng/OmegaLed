@@ -128,6 +128,8 @@ class LedStripWebsocket(tornado.websocket.WebSocketHandler): # pylint: disable=W
             del clients[self.uuid]
         except KeyError:
             print("Could not remove {}".format(self.uuid))
+        except Exception:
+            print("Exception {}".format(self.uuid))
 
 
 def make_app():

@@ -61,6 +61,11 @@ class Led:
 
     def blend(self, color, mode=None):
         """Blend color mode"""
+
+        if not isinstance(color, Color):
+            print('Blend uses Color type')
+            return
+
         if mode is None:
             self.set_color(color)
 
